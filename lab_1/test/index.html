@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ЛР 1 — Запомни цифры</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <a href="../../" class="back">← Все лабораторные</a>
+    <span id="progress"></span>
+  </header>
+
+  <main>
+    <section id="screen-start" class="screen">
+      <h1>Запомни цифры</h1>
+      <p>На экране на 3&nbsp;с (пиктограммы — на 5&nbsp;с) появятся несколько цифр. Цифры будут показаны либо обычными арабскими символами, либо пиктограммами (точками, как на игральной кости; пустая кость означает&nbsp;0).</p>
+      <p>Когда цифры исчезнут, за 20&nbsp;с отметьте все, которые запомнили, и нажмите «Ответить». Всего 30 раундов: сначала 15 с цифрами, потом 15 с пиктограммами. Половина цифр в раунде обычные, остальные — жирные или курсивные.</p>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-pic" id="legend-arabic"></div><span>цифра 5</span></div>
+        <div class="legend-item"><div class="legend-pic" id="legend-picto"></div><span>пиктограмма 5</span></div>
+      </div>
+      <div class="actions">
+        <button id="btn-start" class="btn primary">Начать</button>
+        <a class="btn" href="results.html#demo-one">Пример: результат участника</a>
+        <a class="btn" href="results.html#demo">Пример: сводка результатов</a>
+      </div>
+    </section>
+
+    <section id="screen-show" class="screen" hidden>
+      <div id="stage" class="stage"></div>
+    </section>
+
+    <section id="screen-answer" class="screen" hidden>
+      <h2>Какие цифры были на экране?</h2>
+      <div class="timer" id="timer">
+        <div class="timer-row"><span id="timer-label"></span><span id="timer-val"></span></div>
+        <div class="timer-bar"><i id="timer-bar"></i></div>
+      </div>
+      <div id="options" class="options"></div>
+      <div id="feedback" class="feedback" hidden></div>
+      <button id="btn-submit" class="btn primary">Ответить</button>
+      <button id="btn-next" class="btn primary" hidden>Дальше</button>
+    </section>
+  </main>
+
+  <script src="render.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

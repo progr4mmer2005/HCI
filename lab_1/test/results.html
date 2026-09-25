@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ЛР 1 — Результаты</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <a href="../../" class="back">← Все лабораторные</a>
+  </header>
+
+  <main>
+    <section id="mine" hidden>
+      <h1>Ваш результат</h1>
+      <p>Скопируйте ссылку и отправьте её тому, кто проводит тестирование.</p>
+      <div class="actions">
+        <button id="btn-copy" class="btn primary">Скопировать ссылку</button>
+        <a class="btn" href="./">Пройти ещё раз</a>
+      </div>
+      <p class="hint" id="copy-msg"></p>
+    </section>
+
+    <section id="paste">
+      <h1>Сводка результатов</h1>
+      <p>Вставьте ссылки с результатами участников. Можно вставить переписку целиком — программа сама найдёт в ней ссылки.</p>
+      <textarea id="input" class="paste" rows="8"></textarea>
+      <div class="actions">
+        <button id="btn-calc" class="btn primary">Посчитать</button>
+      </div>
+      <p class="hint" id="status"></p>
+    </section>
+
+    <div id="report"></div>
+  </main>
+
+  <script src="render.js"></script>
+  <script src="mocks.js"></script>
+  <script src="results.js"></script>
+</body>
+</html>
