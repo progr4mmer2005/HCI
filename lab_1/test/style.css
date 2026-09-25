@@ -285,6 +285,11 @@ svg {
   display: flex;
 }
 
+.vlabel-lines {
+  text-align: center;
+  line-height: 1.3;
+}
+
 .glyph {
   display: inline-block;
   width: 1.5em;

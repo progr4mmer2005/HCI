@@ -5,6 +5,16 @@ const STYLE_WORDS = { regular: 'обычные', bold: 'жирные', italic: '
 const COLORS = ['#4472c4', '#ed7d31', '#a5a5a5', '#ffc000', '#5b9bd5', '#70ad47', '#264478', '#9e480e', '#636363', '#997300'];
 const LINK_PATTERN = /v4(_[ap](\d[rbi])+-\d*)+/g;
 
+const MEMORY_GROUPS = [
+  { notation: 'arabic', size: 6, title: 'Цифры, набор из 6', label: 'Цифры,<br>набор из 6' },
+  { notation: 'arabic', size: 8, title: 'Цифры, набор из 8', label: 'Цифры,<br>набор из 8' },
+  { notation: 'picto', size: 6, title: 'Пиктограммы, набор из 6', label: 'Пиктограммы,<br>набор из 6' },
+  { notation: 'picto', size: 8, title: 'Пиктограммы, набор из 8', label: 'Пиктограммы,<br>набор из 8' },
+];
+const MEMORY_COLORS = { arabic: '#4472c4', picto: '#ed7d31' };
+const MEMORY_AXIS_MAX = 8;
+const MILLER_MIN = 5;
+
 const SECTIONS = [
   { notation: 'arabic', title: 'Арабские цифры' },
   { notation: 'picto', title: 'Пиктограммы' },
@@ -262,6 +272,155 @@ function participantsTableHtml(participants) {
   return '<table class="tbl">' + firstHeader + secondHeader + rows + '</table>';
 }
 
+function countMemory(participants, notation, size) {
+  const result = { rounds: 0, remembered: 0, best: 0 };
+  for (const rounds of participants) {
+    for (const round of rounds) {
+      if (round.notation !== notation || round.items.length !== size) {
+        continue;
+      }
+      let remembered = 0;
+      for (const item of round.items) {
+        if (round.selected.includes(item.digit)) {
+          remembered += 1;
+        }
+      }
+      result.rounds += 1;
+      result.remembered += remembered;
+      if (remembered > result.best) {
+        result.best = remembered;
+      }
+    }
+  }
+  return result;
+}
+
+function averageMemory(memory) {
+  if (memory.rounds === 0) {
+    return 0;
+  }
+  return memory.remembered / memory.rounds;
+}
+
+function digitsWord(count) {
+  const lastTwo = count % 100;
+  const last = count % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) {
+    return 'цифр';
+  }
+  if (last === 1) {
+    return 'цифра';
+  }
+  if (last >= 2 && last <= 4) {
+    return 'цифры';
+  }
+  return 'цифр';
+}
+
+function formatNumber(value) {
+  return value.toFixed(1).replace('.', ',');
+}
+
+function memoryChartHtml(participants) {
+  const single = participants.length === 1;
+  const showValues = participants.length <= 10;
+
+  let groups = '';
+  for (const group of MEMORY_GROUPS) {
+    groups += '<div class="vgroup">';
+    for (let i = 0; i < participants.length; i++) {
+      const value = averageMemory(countMemory([participants[i]], group.notation, group.size));
+      let color = COLORS[i % COLORS.length];
+      if (single) {
+        color = MEMORY_COLORS[group.notation];
+      }
+      groups += '<div class="vbar" style="height:' + (value / MEMORY_AXIS_MAX * 100) + '%;background:' + color + '">';
+      if (showValues) {
+        groups += '<span>' + formatNumber(value) + '</span>';
+      }
+      groups += '</div>';
+    }
+    groups += '</div>';
+  }
+
+  let axis = '';
+  for (let value = 0; value <= MEMORY_AXIS_MAX; value += 2) {
+    axis += '<span style="bottom:' + (value / MEMORY_AXIS_MAX * 100) + '%">' + value + '</span>';
+  }
+
+  let labels = '';
+  for (const group of MEMORY_GROUPS) {
+    labels += '<span><span class="vlabel-lines">' + group.label + '</span></span>';
+  }
+
+  let legend = '';
+  if (!single) {
+    legend += '<div class="vlegend">';
+    for (let i = 0; i < participants.length; i++) {
+      const color = COLORS[i % COLORS.length];
+      legend += '<span><i style="background:' + color + '"></i>№' + (i + 1) + '</span>';
+    }
+    legend += '</div>';
+  }
+
+  let html = '<div class="vchart">';
+  html += '<div class="vaxis">' + axis + '</div>';
+  html += '<div class="vplot">' + groups + '</div>';
+  html += '<div></div>';
+  html += '<div class="vlabels">' + labels + '</div>';
+  html += '</div>';
+  html += legend;
+  return html;
+}
+
+function memoryTableHtml(participants) {
+  let html = '<table class="tbl">';
+  html += '<tr><th>Набор</th><th>Раундов</th><th>Запомнено в среднем</th><th>Больше всего за раунд</th></tr>';
+  for (const group of MEMORY_GROUPS) {
+    const memory = countMemory(participants, group.notation, group.size);
+    html += '<tr>';
+    html += '<td>' + group.title + '</td>';
+    html += '<td>' + memory.rounds + '</td>';
+    html += '<td>' + formatNumber(averageMemory(memory)) + ' из ' + group.size + '</td>';
+    html += '<td>' + memory.best + ' из ' + group.size + '</td>';
+    html += '</tr>';
+  }
+  html += '</table>';
+  return html;
+}
+
+function largeSetAverage(participants) {
+  const arabic = countMemory(participants, 'arabic', 8);
+  const picto = countMemory(participants, 'picto', 8);
+  return {
+    arabic: averageMemory(arabic),
+    picto: averageMemory(picto),
+    both: averageMemory({ rounds: arabic.rounds + picto.rounds, remembered: arabic.remembered + picto.remembered }),
+  };
+}
+
+function memoryConclusionHtml(figureNumber, participants) {
+  const arabicSmall = averageMemory(countMemory(participants, 'arabic', 6));
+  const pictoSmall = averageMemory(countMemory(participants, 'picto', 6));
+  const large = largeSetAverage(participants);
+
+  let best = 0;
+  for (const group of MEMORY_GROUPS) {
+    best = Math.max(best, countMemory(participants, group.notation, group.size).best);
+  }
+
+  let text = 'Из рисунка ' + figureNumber + ' видно, что из набора в 8 арабских цифр в среднем запоминалось ' + formatNumber(large.arabic) + ', из набора в 6 — ' + formatNumber(arabicSmall) + '; ';
+  text += 'для пиктограмм — ' + formatNumber(large.picto) + ' и ' + formatNumber(pictoSmall) + '. ';
+  text += 'Больше всего за один раунд запомнено ' + best + ' ' + digitsWord(best) + '. ';
+  text += 'По закону Миллера в кратковременной памяти человек удерживает 7 ± 2 объекта, то есть от 5 до 9. ';
+  if (large.both >= MILLER_MIN) {
+    text += 'Полученные результаты с этим согласуются: из больших наборов в среднем запоминалось ' + formatNumber(large.both) + ' цифры, это попадает в диапазон 7 ± 2.';
+  } else {
+    text += 'Полученные результаты ниже этой границы: из больших наборов в среднем запоминалось ' + formatNumber(large.both) + ' цифры. Вероятно, за короткое время показа (3 и 5 с) участник не успевает запомнить столько цифр, сколько могла бы удержать память.';
+  }
+  return '<p>' + text + '</p>';
+}
+
 function renderReport(participants) {
   let summary = '';
   for (const section of SECTIONS) {
@@ -274,6 +433,8 @@ function renderReport(participants) {
   html += '<p>Участников: ' + participants.length + '. ';
   html += 'Гипотеза 1 — цифры с начертанием запоминаются лучше обычных. ';
   html += 'Гипотеза 2 — жирные цифры запоминаются лучше, чем обычные и курсивные.</p>';
+  const large = largeSetAverage(participants);
+  summary += '<li>Объём памяти: из 8 арабских цифр за раунд в среднем запоминается ' + formatNumber(large.arabic) + ', из 8 пиктограмм — ' + formatNumber(large.picto) + ' (по закону Миллера — 7 ± 2).</li>';
   html += '<ul class="short">' + summary + '</ul>';
   html += '<p class="note">План тестирования: 15 раундов с арабскими цифрами, затем 15 с пиктограммами. ';
   html += 'В каждом виде записи 5 раундов, где половина цифр обычные, а половина жирные и курсивные вперемешку; ';
@@ -313,6 +474,26 @@ function renderReport(participants) {
     html += participantsTableHtml(participants);
     html += '</div>';
   }
+
+  const memoryFigure = SECTIONS.length + 1;
+  let memoryTable = SECTIONS.length + 1;
+  if (participants.length > 1) {
+    memoryTable += 1;
+  }
+  let memoryCaption = 'Рисунок ' + memoryFigure + ' — Сколько цифр запоминается за один раунд';
+  if (participants.length > 1) {
+    memoryCaption += ' у каждого участника';
+  }
+  html += '<h2>Объём кратковременной памяти</h2>';
+  html += '<figure class="fig">';
+  html += memoryChartHtml(participants);
+  html += '<figcaption>' + memoryCaption + '</figcaption>';
+  html += '</figure>';
+  html += memoryConclusionHtml(memoryFigure, participants);
+  html += '<div class="fig">';
+  html += '<p class="fig-caption">Таблица ' + memoryTable + ' — Сколько цифр запоминается за один раунд</p>';
+  html += memoryTableHtml(participants);
+  html += '</div>';
 
   document.getElementById('report').innerHTML = html;
 }
