@@ -8,6 +8,7 @@ from tkinter import filedialog, messagebox, ttk
 import files_core as core
 
 TITLE = 'Управление каталогами'
+ICON_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons')
 PARENT_NAME = '..'
 
 SIZE_OPERATORS = [('больше', '>'), ('меньше', '<'), ('не меньше', '>='), ('не больше', '<='), ('равен', '=')]
@@ -62,52 +63,8 @@ HELP_TEXT = (
 )
 
 
-def make_icon(rows, palette):
-    image = tk.PhotoImage(width=16, height=16)
-    for y, row in enumerate(rows):
-        for x, char in enumerate(row):
-            if char != '.':
-                image.put(palette[char], (x, y))
-    return image
-
-
-FOLDER_ROWS = [
-    '................',
-    '................',
-    '.bbbbb..........',
-    '.byyyyb.........',
-    '.byyyyybbbbbbbb.',
-    '.byyyyyyyyyyyyb.',
-    '.bYYYYYYYYYYYYb.',
-    '.bYYYYYYYYYYYYb.',
-    '.bYYYYYYYYYYYYb.',
-    '.bYYYYYYYYYYYYb.',
-    '.bYYYYYYYYYYYYb.',
-    '.bYYYYYYYYYYYYb.',
-    '.bYYYYYYYYYYYYb.',
-    '.bbbbbbbbbbbbbb.',
-    '................',
-    '................',
-]
-
-FILE_ROWS = [
-    '................',
-    '..gggggggg......',
-    '..gwwwwwwgg.....',
-    '..gwwwwwwgwg....',
-    '..gwwwwwwggggg..',
-    '..gwwwwwwwwwwg..',
-    '..gwllllllllwg..',
-    '..gwwwwwwwwwwg..',
-    '..gwllllllllwg..',
-    '..gwwwwwwwwwwg..',
-    '..gwllllllllwg..',
-    '..gwwwwwwwwwwg..',
-    '..gwllllllwwwg..',
-    '..gwwwwwwwwwwg..',
-    '..gggggggggggg..',
-    '................',
-]
+def load_icon(name):
+    return tk.PhotoImage(file=os.path.join(ICON_DIR, name))
 
 
 def center_over(window, parent):
@@ -308,11 +265,12 @@ class Explorer:
         self.visible = {key: tk.BooleanVar(value=key in self.settings['columns']) for key, _, _, _ in COLUMNS}
         self.message = ''
         self.message_timer = None
-        self.folder_icon = make_icon(FOLDER_ROWS, {'b': '#b8860b', 'y': '#ffd966', 'Y': '#f4c430'})
-        self.file_icon = make_icon(FILE_ROWS, {'g': '#7f7f7f', 'w': '#ffffff', 'l': '#9dc3e6'})
+        self.folder_icon = load_icon('folder-16.png')
+        self.file_icon = load_icon('file-16.png')
+        self.window_icon = load_icon('folder-32.png')
 
         root.title(TITLE)
-        root.iconphoto(True, self.folder_icon)
+        root.iconphoto(True, self.window_icon, self.folder_icon)
         root.geometry('900x580')
         root.minsize(600, 360)
         self.build_menu()
